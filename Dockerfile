@@ -17,12 +17,30 @@ ENV EASYRSA=/usr/share/easy-rsa \
     EASYRSA_CRL_DAYS=3650 \
     EASYRSA_PKI=$OPENVPN/pki
 
+ADD ./lighttpd/htdocs/ /var/www/localhost/htdocs/
+ADD ./lighttpd/config/* /etc/lighttpd/
+RUN OPENVPN=$(echo $OPENVPN | sed -e 's/\//\\\//g') && sed -i /etc/lighttpd/lighttpd.conf -e 's/server\.username.*/server.username\ =\ "'$OVPN_USER'"/' \
+		-e 's/server\.groupname.*/server.groupname\ =\ "'$OVPN_GROUP'"/' \
+		-e 's/^var\.ovpndir.*$/var.ovpndir\ =\ "'${OPENVPN}'"/' && \
+	chown -R ${OVPN_USER}:${OVPN_GROUP} /var/www/localhost/htdocs /etc/lighttpd /var/log/lighttpd
+
+ADD ./bin /usr/local/bin
+RUN chmod 755 /usr/local/bin/* && chown root:${OVPN_GROUP} /usr/local/bin/*
+
+# Add support for OTP authentication using a PAM module
+ADD ./otp/openvpn /etc/pam.d/
+
 VOLUME ["/etc/openvpn"]
+VOLUME ["/var/log"]
 
 # Internally uses port 1194/udp, remap using `docker run -p 443:1194/tcp`
 EXPOSE 1194/udp
+EXPOSE 446/tcp
+
+
 
 CMD ["ovpn_run"]
+USER $OVPN_USER:$OVPN_GROUP
 
 ADD ./bin /usr/local/bin
 RUN chmod a+x /usr/local/bin/*

@@ -7,24 +7,55 @@ LABEL maintainer="Kyle Manna <kyle@kylemanna.com>"
 
 RUN echo "http://dl-4.alpinelinux.org/alpine/edge/community/" >> /etc/apk/repositories && \
     echo "http://dl-4.alpinelinux.org/alpine/edge/testing/" >> /etc/apk/repositories && \
-    apk add --update openvpn iptables bash easy-rsa openvpn-auth-pam google-authenticator pamtester && \
+    apk add --update openvpn iptables bash easy-rsa openvpn-auth-pam google-authenticator pamtester lighttpd lighttpd-mod_auth coreutils && \
     ln -s /usr/share/easy-rsa/easyrsa /usr/local/bin && \
     rm -rf /tmp/* /var/tmp/* /var/cache/apk/* /var/cache/distfiles/*
 
 # Needed by scripts
 ENV OPENVPN /etc/openvpn
 ENV EASYRSA /usr/share/easy-rsa
-ENV EASYRSA_PKI $OPENVPN/pki
+ENV EASYRSA_PKI $OPENVPN/pki \
+    EASYRSA_BATCH=1 \
+    OVPN_USER=openvpn \
+    OVPN_GROUP=openvpn \
+    OVPN_PORT=1194 \
+    OVPN_ARTIFACT_NAME=app.jar \
+    OVPN_PROFILE=prod
 
 # Prevents refused client connection because of an expired CRL
 ENV EASYRSA_CRL_DAYS 3650
 
+ADD ./lighttpd/htdocs/ /var/www/localhost/htdocs/
+ADD ./lighttpd/config/* /etc/lighttpd/
+#ADD ./lightapi/jar/* /etc/lightapi/
+RUN OPENVPN=$(echo $OPENVPN | sed -e 's/\//\\\//g') && sed -i /etc/lighttpd/lighttpd.conf -e 's/server\.username.*/server.username\ =\ "'$OVPN_USER'"/' \
+		-e 's/server\.groupname.*/server.groupname\ =\ "'$OVPN_GROUP'"/' \
+		-e 's/^var\.ovpndir.*$/var.ovpndir\ =\ "'${OPENVPN}'"/' && \
+	chown -R ${OVPN_USER}:${OVPN_GROUP} /var/www/localhost/htdocs /etc/lighttpd /var/log/lighttpd
+
+ADD ./lighttpd/htdocs/ /var/www/localhost/htdocs/
+ADD ./lighttpd/config/* /etc/lighttpd/
+RUN OPENVPN=$(echo $OPENVPN | sed -e 's/\//\\\//g') && sed -i /etc/lighttpd/lighttpd.conf -e 's/server\.username.*/server.username\ =\ "'$OVPN_USER'"/' \
+		-e 's/server\.groupname.*/server.groupname\ =\ "'$OVPN_GROUP'"/' \
+		-e 's/^var\.ovpndir.*$/var.ovpndir\ =\ "'${OPENVPN}'"/' && \
+	chown -R ${OVPN_USER}:${OVPN_GROUP} /var/www/localhost/htdocs /etc/lighttpd /var/log/lighttpd
+
+ADD ./bin /usr/local/bin
+RUN chmod 755 /usr/local/bin/* && chown root:${OVPN_GROUP} /usr/local/bin/*
+
+# Add support for OTP authentication using a PAM module
+ADD ./otp/openvpn /etc/pam.d/
+
 VOLUME ["/etc/openvpn"]
+VOLUME ["/var/log"]
 
 # Internally uses port 1194/udp, remap using `docker run -p 443:1194/tcp`
-EXPOSE 1194/udp
+EXPOSE $OVPN_PORT/udp
+EXPOSE 443/tcp
 
 CMD ["ovpn_run"]
+USER $OVPN_USER:$OVPN_GROUP
+
 
 ADD ./bin /usr/local/bin
 RUN chmod a+x /usr/local/bin/*

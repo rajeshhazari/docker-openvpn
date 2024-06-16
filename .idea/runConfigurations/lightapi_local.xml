@@ -1,0 +1,8 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="lightapi-local" type="JarApplication">
+    <option name="JAR_PATH" value="$PROJECT_DIR$/lightapi/target/spring-boot-thymeleaf-example-0.0.1-SNAPSHOT.jar" />
+    <option name="WORKING_DIRECTORY" value="D:\bitbucket-workspace\product-shared-base-projects\homevpn-spec\https-home-vpn\docker-openvpn" />
+    <option name="ALTERNATIVE_JRE_PATH" />
+    <method v="2" />
+  </configuration>
+</component>

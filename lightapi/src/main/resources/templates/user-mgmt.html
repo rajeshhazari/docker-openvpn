@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}" />
+    <link rel="stylesheet" type="text/css" th:href="@{/css/style.css}" />
+    <script type="text/javascript" th:src="@{/webjars/jquery/jquery.min.js}"></script>
+    <script type="text/javascript" th:src="@{/webjars/bootstrap/js/bootstrap.min.js}"></script>
+</head>
+
+<body>
+<div th:replace="fragments/header :: header"></div>
+<div class="container mt-5" th:unless="th:unless="${#lists.isEmpty(users)}"">
+    <h1>Existing Users</h1>
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Username</th>
+            <th>Valid from</th>
+            <th>Valid to</th>
+            <th>Status</th>
+            <th>Config</th>
+            <th>Email</th>
+            <th>Action</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="user : ${users}" th:id="'user_' + ${user.id}">
+            <td th:text="${user.username}"></td>
+            <td th:text="${user.validFrom}"></td>
+            <td th:text="${user.validTo}"></td>
+            <td th:text="${user.status}"></td>
+            <td th:text="${user.config}"></td>
+            <td th:text="${user.email}"></td>
+            <td>
+                <button class="btn btn-primary btn-sm" th:onclick="'editUser(' + ${user.id} + ')'">Edit</button>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+<input type="text" th:field="*{datePlanted}"
+       th:class="${#fields.hasErrors('datePlanted')}? fieldError" />
+</div>
+<div th:errors="${myForm}">...</div>
+<ul>
+    <li th:each="e : ${#fields.detailedErrors()}" th:class="${e.global}? globalerr : fielderr">
+        <span th:text="${e.global}? '*' : ${e.fieldName}">The field name</span> |
+        <span th:text="${e.message}">The error message</span>
+    </li>
+</ul>
+<div th:replace="fragments/footer :: footer"></div>
+
+<!-- Bootstrap JS, Popper.js, and jQuery -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<!-- JavaScript for User Management -->
+<script>
+    // Function to handle edit user
+    function editUser(userId) {
+      var email = prompt("Enter new email:");
+      if (email !== null) {
+        $.ajax({
+          type: 'PUT',
+          url: '/api/users/' + userId,
+          contentType: 'application/json',
+          data: JSON.stringify({ email: email }),
+          success: function(response) {
+            alert('Email updated successfully!');
+            window.location.reload(); // Refresh page after update
+          },
+          error: function(xhr, status, error) {
+            console.error(xhr.responseText);
+          }
+        });
+      }
+    }
+</script>
+</body>
+</html>
