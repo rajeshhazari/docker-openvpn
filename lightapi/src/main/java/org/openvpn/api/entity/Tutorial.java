@@ -1,13 +1,18 @@
-package com.bezkoder.spring.thymeleaf.entity;
+package org.openvpn.api.entity;
 
-import javax.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "tutorials")
+@Table (name = "tutorials")
 public class Tutorial {
 
   @Id
-  @GeneratedValue(strategy = GenerationType.AUTO)
+  @GeneratedValue (strategy = GenerationType.AUTO)
   private Integer id;
 
   @Column(length = 128, nullable = false)

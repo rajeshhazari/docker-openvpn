@@ -5,11 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.stereotype.Component;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import org.springframework.web.util.UriComponentsBuilder;
-
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 
 @Component
 public class AdminUserRedirectListener implements ApplicationListener<ContextRefreshedEvent> {

@@ -1,8 +1,7 @@
-package com.bezkoder.spring.thymeleaf.controller;
+package org.openvpn.api.controller;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import org.openvpn.api.entity.Tutorial;
+import org.openvpn.api.repository.TutorialRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Controller;
@@ -12,8 +11,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import com.bezkoder.spring.thymeleaf.entity.Tutorial;
-import com.bezkoder.spring.thymeleaf.repository.TutorialRepository;
+import java.util.ArrayList;
+import java.util.List;
 
 @Controller
 public class TutorialController {
@@ -24,16 +23,16 @@ public class TutorialController {
   @GetMapping("/tutorials")
   public String getAll(Model model, @Param("keyword") String keyword) {
     try {
-      List<Tutorial> tutorials = new ArrayList<Tutorial>();
+      List<Tutorial> tutorialsList = new ArrayList<Tutorial>();
 
       if (keyword == null) {
-        tutorialRepository.findAll().forEach(tutorials::add);
+        tutorialRepository.findAll().forEach( tutorialsList::add);
       } else {
-        tutorialRepository.findByTitleContainingIgnoreCase(keyword).forEach(tutorials::add);
+        tutorialRepository.findByTitleContainingIgnoreCase(keyword).forEach(tutorialsList::add);
         model.addAttribute("keyword", keyword);
       }
 
-      model.addAttribute("tutorials", tutorials);
+      model.addAttribute("tutorials", tutorialsList);
     } catch (Exception e) {
       model.addAttribute("message", e.getMessage());
     }
